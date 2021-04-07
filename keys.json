@@ -1,0 +1,5 @@
+{
+    "tasks": "http://py_task:8080/tasks",
+    "events": "http://py_events:3330",
+    "ui": "http://ui:3000"
+}
