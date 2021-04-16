@@ -1,6 +1,5 @@
 import sys
 import json
-import asyncio
 import tornado
 import tornado.web
 import tornado.ioloop
@@ -20,6 +19,9 @@ def parseKeys(path=""):
     with open(path, 'r') as f:
         content = f.read()
         config = json.loads(content)
+
+
+################ EXAMPLE HANDLERS ################
 
 class staticRequestHandler(tornado.web.RequestHandler):
     def get(self):
@@ -83,15 +85,16 @@ class proxyHandler(tornado.web.RequestHandler):
 
 
     async def post(self):
+        print("Handling " + self.request.method + " request to " + self.request.uri + " from " + self.request.host)
         return await self.get()
 
    
     async def put(self, *args, **kwargs):
-        print("Handling " + self.request.method + " request to " + self.request.uri)
+        print("Handling " + self.request.method + " request to " + self.request.uri + " from " + self.request.host)
 
    
     async def delete(self):
-        print("Handling " + self.request.method + " request to " + self.request.uri)
+        print("Handling " + self.request.method + " request to " + self.request.uri + " from " + self.request.host)
 
 
 ################ MAIN ################
