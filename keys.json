@@ -1,5 +1,6 @@
 {
-    "tasks": "http://py_task:8080/tasks",
-    "events": "http://py_events:3330",
-    "ui": "http://ui:3000"
+    "localhost:8080": "localhost:8054",
+    "task1": "server_task1:8080",
+    "task2": "server_task2:8080",
+    "task3": "server_task3:8080"
 }

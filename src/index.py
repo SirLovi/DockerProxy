@@ -1,94 +1,127 @@
 import sys
-import os
+import json
+import asyncio
 import tornado
 import tornado.web
 import tornado.ioloop
+import tornado.httpserver
+import tornado.ioloop
+import tornado.iostream
+import tornado.httpclient
+import tornado.httputil
+import tornado.netutil
 from urllib.parse import urlparse
 
+
 ################ UTILITY FUNCTIONS ################
-"""
-def getProxyKey(url):
-    urlParsed = urlparse(url, scheme="http")
-    proxyKey = "%s_proxy" % urlParsed.scheme
-    return os.environ.get(proxyKey)
 
-def getHostPort(url):
-    urlParsed = urlparse(url, scheme="http")
-    return urlParsed.hostname, urlParsed.port
-
-def fetch_request(url, callback, **args):
-    proxyKey = getProxyKey(url)
-    if proxyKey:
-        print("Forward request via upstream proxy " + proxyKey)
-        tornado.httpclient.AsyncHTTPClient.configure(
-            "tornado.curl_httpclient.CurlAsyncHTTPClient")
-        host, port = getHostPort(proxyKey)
-        args["proxy_host"] = host
-        args["proxy_port"] = port
-
-    req = tornado.httpclient.HTTPRequest(url, **args)
-    client = tornado.httpclient.AsyncHTTPClient()
-    client.fetch(req, callback, raise_error=False)
-"""
-
-################ EXAMPLE TORNADO HANDLERS ################
-
-class basicRequestHandler(tornado.web.RequestHandler):
-    def get(self):
-        #self.set_header("Acces-Control-Allow-Origin", "*")
-        self.write("Hello, world")
+def parseKeys(path=""):
+    global config
+    with open(path, 'r') as f:
+        content = f.read()
+        config = json.loads(content)
 
 class staticRequestHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("index.html")
-
-class queryStringRequestHandler(tornado.web.RequestHandler):
-    def get(self):
-        number = int(self.get_argument("number"))
-        result = "odd" if number % 2 else "even"
-        self.write("the number " + str(number) + " is "+ result)
-
-class resourceRequestRequestHandler(tornado.web.RequestHandler):
-    def get(self, id):
-        self.write("Querying tweet with id " + id)
 
 
 ################ PROXY HANDLER ################
 
 class proxyHandler(tornado.web.RequestHandler):
     SUPPORTED_METHODS = ("GET", "POST", "PUT", "DELETE")
-    # TODO Handle all these methods
 
-    def get(self):
+   
+    async def get(self):
+
+        def handleResponse(response):
+            if (response.error and not (isinstance(response.error, tornado.httpclient.HTTPError))):
+                self.set_status(500)
+                self.write("Error\n" + str(response.error))
+            else:
+                self.set_status(response.code, response.reason)
+                self._headers = tornado.httputil.HTTPHeaders()
+
+                for header, v in response.headers.get_all():
+                    if header not in ('Content-Length', 'Transfer-Encoding', 'Content-Encoding', 'Connection'):
+                        self.add_header(header, v)
+                
+                if response.body:                   
+                    self.set_header('Content-Length', len(response.body))
+                    self.write(response.body)
+            self.finish()
+
+        print("Handling " + self.request.method + " request to " + self.request.uri + " from " + self.request.host)
+
+        adress = self.request.host
+        newServer = config.get(adress)
+        self.request.host = newServer
+        newAdress = "http://" + newServer + self.request.uri
+
+        print("New adress: " + newAdress)
+
+        req = tornado.httpclient.HTTPRequest(
+            newAdress,
+            method=self.request.method,
+            headers=self.request.headers,
+            body=self.request.body,
+            allow_nonstandard_methods=True)
+
+        client = tornado.httpclient.AsyncHTTPClient()
+
+        try:
+            response = await client.fetch(req, raise_error=False)
+            handleResponse(response)
+
+        except tornado.httpclient.HTTPError as error:
+            if hasattr(error, 'response') and error.response:
+                handleResponse(error.response)
+            else:
+                self.set_status(500)
+                self.write("Error\n" + str(error))
+                self.finish()
+
+
+    async def post(self):
+        return await self.get()
+
+   
+    async def put(self, *args, **kwargs):
         print("Handling " + self.request.method + " request to " + self.request.uri)
 
-        # TODO Add response handling here
-
-    def post(self):
-        return self.get()
-
-    def put(self):
-        print("Handling " + self.request.method + " request to " + self.request.uri)
-
-    def delete(self):
+   
+    async def delete(self):
         print("Handling " + self.request.method + " request to " + self.request.uri)
 
 
 ################ MAIN ################
 
 if __name__ == '__main__':
-    app = tornado.web.Application([
-        (r"/tasks/", basicRequestHandler),
-        (r"/", basicRequestHandler),
-        (r"/blog", staticRequestHandler),
-        (r"/isEven", queryStringRequestHandler),
-        (r"/tweet/([0-9]+)", resourceRequestRequestHandler),
+
+    config = dict()
+    parseKeys("keys.json")
+
+    port = 8080
+    if len(sys.argv) > 1:
+        port = int(sys.argv[1])
+
+    appProxy = tornado.web.Application([
         (r".*", proxyHandler)
     ])
 
-    port = 8881
-    if len(sys.argv) > 1:
-        port = int(sys.argv[1])
-    app.listen(port)
+    appTask = tornado.web.Application([
+        (r"/task54", staticRequestHandler)
+    ])
+    
+    proxy_sockets = tornado.netutil.bind_sockets(port)
+    task_sockets = tornado.netutil.bind_sockets(8054)
+
+    serverProxy = tornado.httpserver.HTTPServer(appProxy)
+    serverProxy.add_sockets(proxy_sockets)
+
+    serverTask = tornado.httpserver.HTTPServer(appTask)
+    serverTask.add_sockets(task_sockets)
+
     print("I'm listening on port " + str(port))
+
     tornado.ioloop.IOLoop.current().start()
