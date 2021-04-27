@@ -25,7 +25,7 @@ def parseKeys(path=""):
 
 class staticRequestHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("index.html")
+        self.render("testPage.html")
 
 
 ################ PROXY HANDLER ################
