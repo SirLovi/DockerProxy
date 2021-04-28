@@ -53,13 +53,18 @@ class proxyHandler(tornado.web.RequestHandler):
                     self.write(response.body)
             self.finish()
 
-        print("Handling " + self.request.method + " request to " + self.request.uri + " from " + self.request.host)
+        print("Handling " + self.request.method + " request to '" + self.request.uri + "' from '" + self.request.host + "'")
 
-        adress = self.request.host
-        newServer = config.get(adress)
+        # adress = self.request.host
+
+        firstUri = self.request.uri.split("/")[1]
+
+        newServer = config.get(firstUri)
+        print("First uri key '" + firstUri + "' corresponds to: '" + newServer + "' in the database")
+
         self.request.host = newServer
-        newAdress = "http://" + newServer + self.request.uri
 
+        newAdress = "http://" + newServer + self.request.uri
         print("New adress: " + newAdress)
 
         req = tornado.httpclient.HTTPRequest(
@@ -85,16 +90,16 @@ class proxyHandler(tornado.web.RequestHandler):
 
 
     async def post(self):
-        print("Handling " + self.request.method + " request to " + self.request.uri + " from " + self.request.host)
+        print("Handling " + self.request.method + " request to '" + self.request.uri + "' from '" + self.request.host + "'")
         return await self.get()
 
    
     async def put(self, *args, **kwargs):
-        print("Handling " + self.request.method + " request to " + self.request.uri + " from " + self.request.host)
+        print("Handling " + self.request.method + " request to '" + self.request.uri + "' from '" + self.request.host + "'")
 
    
     async def delete(self):
-        print("Handling " + self.request.method + " request to " + self.request.uri + " from " + self.request.host)
+        print("Handling " + self.request.method + " request to '" + self.request.uri + "' from '" + self.request.host + "'")
 
 
 ################ MAIN ################

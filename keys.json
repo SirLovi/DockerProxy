@@ -1,6 +1,5 @@
 {
-    "localhost:8080": "localhost:8054",
-    "task1": "server_task1:8080",
+    "task54": "localhost:8054",
     "task2": "server_task2:8080",
     "task3": "server_task3:8080"
 }
