@@ -1,0 +1,34 @@
+version: '3.4'
+
+services:
+
+  python_proxy:
+    image: python_proxy
+    build:
+      context: ./src
+    ports:
+      - 50001:80
+
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=example
+    
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=anoyne@anywhere.com
+      - PGADMIN_DEFAULT_PASSWORD=example
+    ports:
+      - 50011:80
+
+  #whoami
+
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - 50000:80
+    depends_on:
+      - postgres
+      - python_proxy

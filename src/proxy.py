@@ -109,7 +109,7 @@ if __name__ == '__main__':
     config = dict()
     parseKeys("keys.json")
 
-    port = 8080
+    port = 80
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
 
@@ -133,3 +133,4 @@ if __name__ == '__main__':
     print("I'm listening on port " + str(port))
 
     tornado.ioloop.IOLoop.current().start()
+    
