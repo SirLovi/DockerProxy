@@ -44,9 +44,9 @@ class proxyHandler(tornado.web.RequestHandler):
                 self.set_status(response.code, response.reason) 
                 self._headers = tornado.httputil.HTTPHeaders()
 
-                for header, v in response.headers.get_all():
+                for header, v in response.headers.get_all(): # for loop
                     if header not in ('Content-Length', 'Transfer-Encoding', 'Content-Encoding', 'Connection'):
-                        self.add_header(header, v)
+                        self.add_header(header, v) # to v adding headers 
                 
                 if response.body:                   
                     self.set_header('Content-Length', len(response.body))
@@ -55,9 +55,9 @@ class proxyHandler(tornado.web.RequestHandler):
 
         print("Handling " + self.request.method + " request to '" + self.request.uri + "' from '" + self.request.host + "'")
         # log the response
-        # adress = self.request.host # idk
+        # adress = self.request.host # self nadrazena funkce a jeho methoda (get), task54/index.php, request to client posila request nekam a posila to z nejake IP (localhost)
 
-        firstUri = self.request.uri.split("/")[1] # rozdělí self.request.uri po každém `/` znaku and a získá 2nd odpověd
+        firstUri = self.request.uri.split("/")[1] # split the self.request.uri after `/` char and a get 2nd answer
 
         newServer = config.get(firstUri)
         print("First uri key '" + firstUri + "' corresponds to: '" + newServer + "' in the database")
@@ -88,7 +88,7 @@ class proxyHandler(tornado.web.RequestHandler):
                 self.write("Error\n" + str(error))
                 self.finish()
 
-    async def post(self): 
+    async def post(self):
         print("Handling " + self.request.method + " request to '" + self.request.uri + "' from '" + self.request.host + "'")
         return await self.get() # in a post request, use it as a get request
 
