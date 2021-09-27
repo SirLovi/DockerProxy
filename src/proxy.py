@@ -23,15 +23,15 @@ def parseKeys(path=""):
 
 ################ EXAMPLE HANDLERS ################
 
-class staticRequestHandler(tornado.web.RequestHandler): # a new class that adds to `RequestHandler`
+class testPageHandler(tornado.web.RequestHandler): # a new class that adds to `RequestHandler`
     def get(self): # when there is a get request, respond with the contents of `testPage.html`
         self.render("testPage.html")
 
 
 ################ PROXY HANDLER ################
 
-class proxyHandler(tornado.web.RequestHandler): # 
-    SUPPORTED_METHODS = ("GET", "POST", "PUT", "DELETE") # a tuple of http methods this will support
+class proxyHandler(tornado.web.RequestHandler):
+    SUPPORTED_METHODS = ("GET", "POST") # a tuple of http methods this will support
 
    
     async def get(self): # in a get request
@@ -92,15 +92,6 @@ class proxyHandler(tornado.web.RequestHandler): #
         print("Handling " + self.request.method + " request to '" + self.request.uri + "' from '" + self.request.host + "'")
         return await self.get() # in a post request, use it as a get request
 
-    # in other request types, log them   
-    async def put(self, *args, **kwargs):
-        print("Handling " + self.request.method + " request to '" + self.request.uri + "' from '" + self.request.host + "'")
-
-   
-    async def delete(self):
-        print("Handling " + self.request.method + " request to '" + self.request.uri + "' from '" + self.request.host + "'")
-
-
 ################ MAIN ################
 
 if __name__ == '__main__': # when you run the file
@@ -119,7 +110,7 @@ if __name__ == '__main__': # when you run the file
 
     # vytvoří tornado webovou apliaci appTask
     appTask = tornado.web.Application([
-        (r"/task54", staticRequestHandler)
+        (r"/serverApp1", testPageHandler)
     ])
     
     proxy_sockets = tornado.netutil.bind_sockets(port) # nabinduje proxy sockety k portu

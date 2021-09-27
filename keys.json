@@ -1,6 +1,0 @@
-{
-    "task54": "localhost:8054",
-    "task2": "server_task2:8080",
-    "task3": "server_task3:8080",
-    "whoami": "whoami:80"
-}
